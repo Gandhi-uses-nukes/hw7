@@ -8,11 +8,11 @@ const double mu = 0.012277471;
 
 // Define functions
 void k_func(double Y4[], double k[][4], double dt, const double a[][7]);
-double k_2_calc(double k_vec, double x1, double x2,double x4, double r, double s);
-double k_3_calc(double k_vec, double x1, double x2,double x3, double r, double s);
+double k_2_calc(double k_vec, double x1, double x2, double x4, double r, double s);
+double k_3_calc(double k_vec, double x1, double x2, double x3, double r, double s);
 
-void rk_4(double Y4[], double k[][4], double dt, double b4[]);
-void rk_5(double Y5[], double k[][4], double dt, double b5[]);
+void rk_4(double Y4[], double k[][4], double dt, const double b4[]);
+void rk_5(double Y5[], double k[][4], double dt, const double b5[]);
 
 double new_step(double Y4[], double Y5[], double dt);
 
@@ -31,9 +31,9 @@ int main(){
 
     double k[7][4] = { 0 };
 
-	// Because I alreay know the size of Matrix A
+	// Because I alreay know the size of matrix A
 	// I use static allocation as multidimensional Array.
-	// Only the lower diagonal matrix will be != 0.
+	// Only the lower left diagonal matrix will be != 0.
 	// Yeah, I know we should use a long array instead a "matrix" in C++
 	// But in this case we already know the dimension.
     const double a[7][7] =
@@ -47,7 +47,7 @@ int main(){
     { 35.0/384,     0,              500.0/1113,     125.0/192,  -2187.0/6784,   11.0/84, 0 }
     };
 
-    double b4[7] =
+    const double b4[7] =
     {
     5179.0/57600,
 	0,
@@ -58,7 +58,7 @@ int main(){
 	1.0/40
 	};
 
-    double b5[7] =
+    const double b5[7] =
     {
     35.0/384,
 	0,
@@ -68,11 +68,6 @@ int main(){
 	11.0/84,
 	0
 	};
-
-	// The c-vector is for both rk methods the same
-	// Because of that, I define it one time only in the main
-	// function.
-	//const double c[7] = {0, 1.0/5,  3.0/10, 4.0/5,  8.0/9,  1,  1 };
 
 	// Initial values at T=0
 	Y4[0] = 0.994;
@@ -84,23 +79,22 @@ int main(){
 	Y5[1] = 0;
     Y5[2] = 0;
 	Y5[3] = -2.00158510637908;
-	//cout << T << "\t" << Y4[0] << "\t" << Y4[1] << endl;
 
 	while(T < T_end){
         // Give out new y_n+1
-        cout << T << "\t" << Y4[0] << "\t" << Y4[1] << endl;
+        cout << T << "\t" << Y4[0] << "\t" << Y4[1] << "\t" << dt << endl;
         // Calculate k vectors
         k_func(Y4, k, dt, a);
-        // Use specific weights for RK4 method
+        // Calculate Runge-Kutta 4 and Runge-Kutta 5
         rk_4(Y4, k, dt, b4);
-        // Use specific weights for RK5 method
-        //rk_5(Y5, k, dt, b5);
+        rk_5(Y5, k, dt, b5);
 
         // One more step
         T += dt;
-        //dt = new_step(Y4, Y5, dt);
-        //for(int l=0 ; l<4 ; l++)
-            //Y5[l] = Y4[l];
+        dt = new_step(Y4, Y5, dt);
+        // Set Y5 to Y4
+        for(int l=0 ; l<4 ; l++)
+            Y5[l] = Y4[l];
 	}
 	return 0;
 }
@@ -125,8 +119,8 @@ void k_func(double Y4[], double k[][4], double dt, const double a[][7]){
     s = sqrt(pow(x1-1+mu,2)+pow(x2,2));
     k[i][0] = Y4[2]+dt*tmp[2];
     k[i][1] = Y4[3]+dt*tmp[3];
-    k[i][2] = k_2_calc(k[i][2], x1, x2, Y4[3]+dt*tmp[3], r, s);
-    k[i][3] = k_3_calc(k[i][3], x1, x2, Y4[2]+dt*tmp[2], r, s);
+    k[i][2] = k_2_calc(k[i][2], x1, x2, k[i][1], r, s);
+    k[i][3] = k_3_calc(k[i][3], x1, x2, k[i][0], r, s);
     //cout << k[i][0] << "\t" << k[i][1] << "\t" << k[i][2] << "\t" << k[i][3] << endl;
 	}
 }
@@ -141,7 +135,7 @@ double k_3_calc(double k_vec, double x1, double x2, double x3, double r, double 
 	return k_vec;
 }
 
-void rk_4(double Y4[], double k[][4], double dt, double b4[]){
+void rk_4(double Y4[], double k[][4], double dt, const double b4[]){
     double tmp[4] = { 0 };
 
 	for(int i=0 ; i<7 ; i++)
@@ -154,7 +148,7 @@ void rk_4(double Y4[], double k[][4], double dt, double b4[]){
         Y4[l] += dt*tmp[l];
 }
 
-void rk_5(double Y5[], double k[][4], double dt, double b5[]){
+void rk_5(double Y5[], double k[][4], double dt, const double b5[]){
     double tmp[4] = { 0 };
 
 	for(int i=0 ; i<7 ; i++)
@@ -184,7 +178,6 @@ double new_step(double Y4[], double Y5[], double dt){
         abs(Y4[3]-Y5[3]));
 
 	// Calculate new dt
-	//dt = dt*q*pow( (TOL/H) , (1.0/(p+1)) );
-	dt = 1E-5;
+	dt = dt*q*pow( (TOL/H) , (1.0/(p+1)) );
 	return dt;
 }
