@@ -18,7 +18,7 @@ double new_step(double Y4[], double Y5[], double dt);
 
 // Main function
 int main(){
-	double dt = 10E-5;
+	double dt = 1E-5;
 	// Time variable
 	double T = 0;
 	double T_end = 12.0;
@@ -28,7 +28,7 @@ int main(){
 
 	// For RK5 -> Y5 = [ x, y, x', y']
 	double* Y5 = new double [4];
-	
+
     double k[4][7];
 
 	// Because I alreay know the size of Matrix A
@@ -41,7 +41,7 @@ int main(){
     { 0,            0,              0,              0,          0,              0,       0 },
     { 1.0/5,        0,              0,              0,          0,              0,       0 },
     { 3.0/40,       9.0/40,         0,              0,          0,              0,       0 },
-    { 44.0/45,      -56/15,         32.0/9,         0,          0,              0,       0 },
+    { 44.0/45,      -56.0/15,       32.0/9,         0,          0,              0,       0 },
     { 19372.0/6561, -25360.0/2187,  64448.0/6561,   -212.0/729, 0,              0,       0 },
     { 9017.0/3168,  -355.0/33,      46732.0/5247,   49.0/176,   -5103.0/18656,  0,       0 },
     { 35.0/384,     0,              500.0/1113,     125.0/192,  -2187.0/6784,   11.0/84, 0 }
@@ -104,7 +104,7 @@ void k_func(double Y4[], double k[][7], double dt, double a[][7], double c[]){
     k[i][1] = k_1_calc(k[i][1], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][2] = k_2_calc(k[i][2], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][3] = k_3_calc(k[i][3], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
-    //cout << k[i][0] << "\t" << k[i][1] << "\t" << k[i][2] << "\t" << k[i][3] << endl;
+    cout << k[i][0] << "\t" << k[i][1] << "\t" << k[i][2] << "\t" << k[i][3] << endl;
 	}
 }
 
@@ -158,6 +158,7 @@ void rk_4(double Y4[], double k[][7], double dt){
 	Y4[1] += dt*tmp_1;
     Y4[2] += dt*tmp_2;
 	Y4[3] += dt*tmp_3;
+	cout << Y4[0] << "\t" << Y4[1] << "\t" << Y4[2] << "\t" << Y4[3] << endl;
 }
 
 void rk_5(double Y5[], double k[][7], double dt){
@@ -207,6 +208,6 @@ double new_step(double Y4[], double Y5[], double dt){
 
 	// Calculate new dt
 	//dt = dt*q*pow( (TOL/H) , (1.0/(p+1)) );
-	dt = 10E-5;
+	dt = 1E-5;
 	return dt;
 }
