@@ -7,13 +7,13 @@ const double TOL = 1E-5;
 const double mu = 0.012277471;
 
 // Define functions
-void k_func(double Y4[], double k[][7], double dt, double a[][7], double c[]);
+void k_func(double Y4[], double k[][4], double dt, const double a[][7]);
 double k_0_calc(double k_vec, double x1, double x2,double x3,double x4);
 double k_1_calc(double k_vec, double x1, double x2,double x3,double x4);
 double k_2_calc(double k_vec, double x1, double x2,double x3,double x4);
 double k_3_calc(double k_vec, double x1, double x2,double x3,double x4);
-void rk_4(double Y4[], double k[][7], double dt);
-void rk_5(double Y5[], double k[][7], double dt);
+void rk_4(double Y4[], double k[][4], double dt);
+void rk_5(double Y5[], double k[][4], double dt);
 double new_step(double Y4[], double Y5[], double dt);
 
 // Main function
@@ -29,14 +29,14 @@ int main(){
 	// For RK5 -> Y5 = [ x, y, x', y']
 	double* Y5 = new double [4];
 
-    double k[4][7];
+    double k[7][4] = { 0 };
 
 	// Because I alreay know the size of Matrix A
 	// I use static allocation as multidimensional Array.
 	// Only the lower diagonal matrix will be != 0.
 	// Yeah, I know we should use a long array instead a "matrix" in C++
 	// But in this case we already know the dimension.
-    double a[7][7] =
+    const double a[7][7] =
     {
     { 0,            0,              0,              0,          0,              0,       0 },
     { 1.0/5,        0,              0,              0,          0,              0,       0 },
@@ -50,7 +50,7 @@ int main(){
 	// The c-vector is for both rk methods the same
 	// Because of that, I define it one time only in the main
 	// function.
-	double c[7] = {0, 1.0/5,  3.0/10, 4.0/5,  8.0/9,  1,  1 };
+	//const double c[7] = {0, 1.0/5,  3.0/10, 4.0/5,  8.0/9,  1,  1 };
 
 	// Initial values at T=0
 	Y4[0] = 0.994;
@@ -66,13 +66,13 @@ int main(){
 
 	while(T < T_end){
         // Calculate k vectors
-        k_func(Y4, k, dt, a, c);
+        k_func(Y4, k, dt, a);
         // Use specific weights for RK4 method
         rk_4(Y4, k, dt);
         // Use specific weights for RK5 method
         rk_5(Y5, k, dt);
         // Give out new y_n+1
-        cout << T << "\t" << Y4[0] << "\t" << Y4[1] << endl;
+        //cout << T << "\t" << Y4[0] << "\t" << Y4[1] << endl;
         //cout << T << "\t" << Y5[0] << "\t" << Y5[1] << endl;
         // One step more
         T += dt;
@@ -85,27 +85,32 @@ int main(){
 	return 0;
 }
 
-void k_func(double Y4[], double k[][7], double dt, double a[][7], double c[]){
+void k_func(double Y4[], double k[][4], double dt, const double a[][7]){
     double tmp_0, tmp_1, tmp_2, tmp_3;
 
 	for(int i=0; i<7; i++){
-    tmp_0 = 0;
-    tmp_1 = 0;
-    tmp_2 = 0;
-    tmp_3 = 0;
-    for(int j=0; j<i; j++){
-        tmp_0 += a[i][j]*k[i-1][0];
-        tmp_1 += a[i][j]*k[i-1][1];
-        tmp_2 += a[i][j]*k[i-1][2];
-        tmp_3 += a[i][j]*k[i-1][3];
-        //cout << "a(" << i << ";" << j << ")*k[" << i-1 << "] ";
+	    cout << "i = " << i << endl;
+        tmp_0 = 0.0;
+        tmp_1 = 0.0;
+        tmp_2 = 0.0;
+        tmp_3 = 0.0;
+        for(int j=0; j<i; j++){
+            tmp_0 += a[i][j]*k[j][0];
+            tmp_1 += a[i][j]*k[j][1];
+            tmp_2 += a[i][j]*k[j][2];
+            tmp_3 += a[i][j]*k[j][3];
+            cout << "a(" << i << ";" << j << ") = " << a[i][j] << endl;
     }
-    //cout << endl;
+    cout << "k:" << endl;
+    for (int r=0; r<i ; r++)
+        cout << "k[" << r << "]" << "[" << 2 << "] = " << k[r][2]<< endl;
+    cout << tmp_0 << "\t" << tmp_1 << "\t" << tmp_2 << "\t" << tmp_3 << endl;
     k[i][0] = k_0_calc(k[i][0], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][1] = k_1_calc(k[i][1], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][2] = k_2_calc(k[i][2], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][3] = k_3_calc(k[i][3], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     cout << k[i][0] << "\t" << k[i][1] << "\t" << k[i][2] << "\t" << k[i][3] << endl;
+    cout << endl;
 	}
 }
 
@@ -120,20 +125,22 @@ double k_1_calc(double k_vec, double x1, double x2,double x3,double x4){
 }
 
 double k_2_calc(double k_vec, double x1, double x2,double x3,double x4){
-    double r = sqrt(pow(x1+mu,2)+pow(x2,2));
-    double s = sqrt(pow(x1-1+mu,2)+pow(x2,2));
-	k_vec = x1 + 2.0*x4 - (1.0-mu)*(x1+mu)/pow(r,3)  - mu*(x1-1.0+mu)/pow(s,3);
+    //double r = sqrt(pow(x1+mu,2)+pow(x2,2));
+    //double s = sqrt(pow(x1-1+mu,2)+pow(x2,2));
+	//k_vec = x1 + 2.0*x4 - (1.0-mu)*(x1+mu)/pow(r,3)  - mu*(x1-1.0+mu)/pow(s,3);
+	k_vec = x1 + 2.0*x4 - ((1.0-mu)*(x1+mu)/pow(sqrt(pow(x1+mu,2)+pow(x2,2)),3)) - (mu*(x1-1+mu)/pow(sqrt(pow(x1-1+mu,2)+pow(x2,2)),3));
 	return k_vec;
 }
 
 double k_3_calc(double k_vec, double x1, double x2,double x3,double x4){
-    double r = sqrt(pow(x1+mu,2)+pow(x2,2));
-    double s = sqrt(pow(x1-1+mu,2)+pow(x2,2));
-	k_vec = x2 - 2.0*x3 - (1.0-mu)*x2/pow(r,3)       - mu*x2/pow(s,3);
+    //double r = sqrt(pow(x1+mu,2)+pow(x2,2));
+    //double s = sqrt(pow(x1-1+mu,2)+pow(x2,2));
+	//k_vec = x2 - 2.0*x3 - (1.0-mu)*x2/pow(r,3)       - mu*x2/pow(s,3);
+	k_vec = x2 - 2.0*x3 - ((1.0-mu)*x2/pow(sqrt(pow(x1+mu,2)+pow(x2,2)),3)) - (mu*x2/pow(sqrt(pow(x1-1+mu,2)+pow(x2,2)),3));
 	return k_vec;
 }
 
-void rk_4(double Y4[], double k[][7], double dt){
+void rk_4(double Y4[], double k[][4], double dt){
 	// Define specific constant weights for rk_4
 	double* b = new double [7];
 
@@ -162,7 +169,7 @@ void rk_4(double Y4[], double k[][7], double dt){
 	//cout << Y4[0] << "\t" << Y4[1] << "\t" << Y4[2] << "\t" << Y4[3] << endl;
 }
 
-void rk_5(double Y5[], double k[][7], double dt){
+void rk_5(double Y5[], double k[][4], double dt){
 	// Define specific constant weights for rk_5
 	double* b = new double [7];
 
