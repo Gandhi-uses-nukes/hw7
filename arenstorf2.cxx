@@ -98,8 +98,9 @@ void k_func(double Y4[], double k[][7], double dt, double a[][7], double c[]){
         tmp_1 += a[i][j]*k[i-1][1];
         tmp_2 += a[i][j]*k[i-1][2];
         tmp_3 += a[i][j]*k[i-1][3];
-        // cout << "a(" << i << ";" << j << ")*k[" << i-1 << "]" << a[i][j] << endl;
+        //cout << "a(" << i << ";" << j << ")*k[" << i-1 << "] ";
     }
+    //cout << endl;
     k[i][0] = k_0_calc(k[i][0], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][1] = k_1_calc(k[i][1], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
     k[i][2] = k_2_calc(k[i][2], Y4[0]+dt*tmp_0, Y4[1]+dt*tmp_1, Y4[2]+dt*tmp_2, Y4[3]+dt*tmp_3);
@@ -158,7 +159,7 @@ void rk_4(double Y4[], double k[][7], double dt){
 	Y4[1] += dt*tmp_1;
     Y4[2] += dt*tmp_2;
 	Y4[3] += dt*tmp_3;
-	cout << Y4[0] << "\t" << Y4[1] << "\t" << Y4[2] << "\t" << Y4[3] << endl;
+	//cout << Y4[0] << "\t" << Y4[1] << "\t" << Y4[2] << "\t" << Y4[3] << endl;
 }
 
 void rk_5(double Y5[], double k[][7], double dt){
