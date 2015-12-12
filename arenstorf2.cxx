@@ -28,58 +28,29 @@ int main(){
 
 	// For RK5 -> Y5 = [ x, y, x', y']
 	double* Y5 = new double [4];
+	
     double k[4][7];
-
-	// define constans for the different RK methods
-	double* c = new double [7];
 
 	// Because I alreay know the size of Matrix A
 	// I use static allocation as multidimensional Array.
 	// Only the lower diagonal matrix will be != 0.
 	// Yeah, I know we should use a long array instead a "matrix" in C++
 	// But in this case we already know the dimension.
-    double a[7][7];
-//    for(int i=0 ; i<7 ; i++){
-//        for(int j=0 ; j<7 ; j++)
-//            a[i][j] = 0;
-//    }
-	a[1][0] = 1.0/5;
-
-	a[2][0] = 3.0/40;
-	a[2][1] = 9.0/40;
-
-	a[3][0] = 44.0/45;
-	a[3][1] = -56.0/15;
-	a[3][2] = 32.0/9;
-
-	a[4][0] = 19372.0/6561;
-	a[4][1] = -25360.0/2187;
-	a[4][2] = 64448.0/6561;
-	a[4][3] = -212.0/729;
-
-	a[5][0] = 9017.0/3168;
-	a[5][1] = -355.0/33;
-	a[5][2] = 46732.0/5247;
-	a[5][3] = 49.0/176;
-	a[5][4] = -5103.0/18656;
-
-	a[6][0] = 35.0/384;
-	a[6][1] = 0;
-	a[6][2] = 500.0/1113;
-	a[6][3] = 125.0/192;
-	a[6][4] = -2187.0/6784;
-	a[6][5] = 11.0/84;
+    double a[7][7] =
+    {
+    { 0,            0,              0,              0,          0,              0,       0 },
+    { 1.0/5,        0,              0,              0,          0,              0,       0 },
+    { 3.0/40,       9.0/40,         0,              0,          0,              0,       0 },
+    { 44.0/45,      -56/15,         32.0/9,         0,          0,              0,       0 },
+    { 19372.0/6561, -25360.0/2187,  64448.0/6561,   -212.0/729, 0,              0,       0 },
+    { 9017.0/3168,  -355.0/33,      46732.0/5247,   49.0/176,   -5103.0/18656,  0,       0 },
+    { 35.0/384,     0,              500.0/1113,     125.0/192,  -2187.0/6784,   11.0/84, 0 }
+    };
 
 	// The c-vector is for both rk methods the same
 	// Because of that, I define it one time only in the main
 	// function.
-	c[0] = 0;
-	c[1] = 1.0/5;
-	c[2] = 3.0/10;
-	c[3] = 4.0/5;
-	c[4] = 8.0/9;
-	c[5] = 1;
-	c[6] = 1;
+	double c[7] = {0, 1.0/5,  3.0/10, 4.0/5,  8.0/9,  1,  1 };
 
 	// Initial values at T=0
 	Y4[0] = 0.994;
@@ -102,9 +73,14 @@ int main(){
         rk_5(Y5, k, dt);
         // Give out new y_n+1
         cout << T << "\t" << Y4[0] << "\t" << Y4[1] << endl;
+        //cout << T << "\t" << Y5[0] << "\t" << Y5[1] << endl;
         // One step more
         T += dt;
         dt = new_step(Y4, Y5, dt);
+        Y5[0] = Y4[0];
+        Y5[1] = Y4[1];
+        Y5[2] = Y4[2];
+        Y5[3] = Y4[3];
 	}
 	return 0;
 }
@@ -230,7 +206,7 @@ double new_step(double Y4[], double Y5[], double dt){
         abs(Y4[3]-Y5[3]));
 
 	// Calculate new dt
-	dt = dt*q*pow( (TOL/H) , (1.0/(p+1)) );
-	//dt = 10E-5;
+	//dt = dt*q*pow( (TOL/H) , (1.0/(p+1)) );
+	dt = 10E-5;
 	return dt;
 }
